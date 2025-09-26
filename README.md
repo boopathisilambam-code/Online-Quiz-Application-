@@ -1,108 +1,12 @@
-# Quiz App - MERN Stack
-A full-stack quiz application built with the MERN stack (MongoDB, Express.js, React, Node.js) featuring admin dashboards, quiz creation, and real-time analytics.
+# React + Vite
 
-## 🚀 Features
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-### Admin Features
-- 📊 Dashboard with performance analytics
-- ✏️ Create/edit/delete quizzes
-- 📝 Manage questions and correct answers
-- 📈 View student results and statistics
+Currently, two official plugins are available:
 
-### User Features
-- 🎯 Take interactive quizzes
-- 📊 View instant results
-- 🏆 Track progress over time
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## 🛠 Tech Stack
+## Expanding the ESLint configuration
 
-**Frontend:**
-- React.js
-- Material-UI
-- React Router
-- Chart.js
-- Axios
-
-**Backend:**
-- Node.js
-- Express.js
-- JWT Authentication
-- Mongoose
-
-**Database:**
-- MongoDB Atlas
-
-## 📦 Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/ankitsharma38/quiz-app-mern.git
-   cd quiz-app-mern
-   ```
-
-2. **Set up backend**
-   ```bash
-   cd backend
-   npm install
-   cp .env.example .env
-   # Add your MongoDB URI and JWT secret
-   npm start
-   ```
-
-3. **Set up frontend**
-   ```bash
-   cd ../frontend
-   npm install
-   npm run dev
-   ```
-
-## ⚙️ Configuration
-
-Create `.env` files with these variables:
-
-**Backend (`.env`):**
-```
-MONGO_URI=your_mongodb_atlas_connection_string
-JWT_SECRET=your_jwt_secret_key
-PORT=5000
-```
-
-**Frontend (`vite.config.js`):**
-```javascript
-server: {
-  proxy: {
-    '/api': 'http://localhost:5000'
-  }
-}
-```
-
-
-## 📝 API Endpoints
-
-| Method | Endpoint                 | Description                  |
-|--------|--------------------------|------------------------------|
-| POST   | /api/auth/register       | User registration            |
-| POST   | /api/auth/login          | User login                   |
-| GET    | /api/quiz                | Get all quizzes              |
-| POST   | /api/admin/quiz          | Create new quiz (Admin)      |
-| PUT    | /api/admin/quiz/:id      | Update quiz (Admin)          |
-
-## Quiz App - Project Overview
-
-### Description:
-A MERN stack (MongoDB, Express.js, React, Node.js) quiz application where:
-
-- Admins can create, edit, and delete quizzes with multiple-choice questions.
-- Students can take quizzes and view their scores.
-- Admins can track performance via an analytics dashboard.
-
-### 🚀 Key Features
-- ✔ User Authentication (Login/Register)
-- ✔ Admin Dashboard (Quiz management & analytics)
-- ✔ Dynamic Quiz Creation (Add/remove questions & options)
-- ✔ Real-time Results (Score tracking & leaderboard)
-- ✔ Responsive UI (Mobile-friendly with Material-UI)
-
-## 📧 Contact
-
-If you face any problems, feel free to reach out to me at [ankitsharma7805@gmail.com](mailto:ankitsharma7805@gmail.com).
+If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
