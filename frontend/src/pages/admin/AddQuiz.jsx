@@ -22,9 +22,13 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAuth } from '../../context/AuthContext';
 
+// Full backend URL
+const API_BASE = "http://localhost:5000/api/admin";
+
 const AddQuiz = () => {
   const { token } = useAuth();
   const navigate = useNavigate();
+
   const [quiz, setQuiz] = useState({
     title: '',
     description: '',
@@ -37,6 +41,7 @@ const AddQuiz = () => {
       points: 1
     }]
   });
+
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
@@ -57,9 +62,8 @@ const AddQuiz = () => {
     const newQuestions = [...quiz.questions];
     newQuestions[qIndex].options[oIndex] = {
       ...newQuestions[qIndex].options[oIndex],
-      [e.target.name]: e.target.type === 'radio' ? 
-        (e.target.value === 'true') : 
-        e.target.value
+      [e.target.name]:
+        e.target.type === 'radio' ? e.target.value === 'true' : e.target.value
     };
     setQuiz({ ...quiz, questions: newQuestions });
   };
@@ -81,39 +85,48 @@ const AddQuiz = () => {
     });
   };
 
-  const addOption = (qIndex) => {
-    const newQuestions = [...quiz.questions];
-    newQuestions[qIndex].options.push({
-      text: '',
-      isCorrect: false
-    });
-    setQuiz({ ...quiz, questions: newQuestions });
-  };
-
   const removeQuestion = (index) => {
+    if (quiz.questions.length <= 1) return;
     const newQuestions = [...quiz.questions];
     newQuestions.splice(index, 1);
     setQuiz({ ...quiz, questions: newQuestions });
   };
 
+  const addOption = (qIndex) => {
+    const newQuestions = [...quiz.questions];
+    newQuestions[qIndex].options.push({ text: '', isCorrect: false });
+    setQuiz({ ...quiz, questions: newQuestions });
+  };
+
   const removeOption = (qIndex, oIndex) => {
     const newQuestions = [...quiz.questions];
+    if (newQuestions[qIndex].options.length <= 2) return;
     newQuestions[qIndex].options.splice(oIndex, 1);
     setQuiz({ ...quiz, questions: newQuestions });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    if (!token) {
+      setError("You must be logged in to create a quiz.");
+      return;
+    }
+
     try {
-      await axios.post('/api/admin/quiz', quiz, {
+      const res = await axios.post(`${API_BASE}/quiz`, quiz, {
         headers: {
-          'x-auth-token': token
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
+
       setSuccess('Quiz created successfully!');
       setTimeout(() => navigate('/admin'), 1500);
     } catch (err) {
-      setError(err.response?.data?.msg || 'Failed to create quiz');
+      setError(err.response?.data?.msg || err.message || 'Failed to create quiz');
     }
   };
 
@@ -123,17 +136,8 @@ const AddQuiz = () => {
         Create New Quiz
       </Typography>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
-      {success && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          {success}
-        </Alert>
-      )}
+      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
 
       <Paper elevation={3} sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
@@ -189,10 +193,9 @@ const AddQuiz = () => {
                     inputProps={{ min: 1 }}
                   />
                 </Grid>
+
                 <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Options
-                  </Typography>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>Options</Typography>
                   {question.options.map((option, oIndex) => (
                     <Box key={oIndex} sx={{ mb: 2 }}>
                       <Grid container alignItems="center" spacing={2}>
@@ -215,25 +218,14 @@ const AddQuiz = () => {
                               value={option.isCorrect.toString()}
                               onChange={(e) => handleOptionChange(qIndex, oIndex, e)}
                             >
-                              <FormControlLabel
-                                value="true"
-                                control={<Radio />}
-                                label="Yes"
-                              />
-                              <FormControlLabel
-                                value="false"
-                                control={<Radio />}
-                                label="No"
-                              />
+                              <FormControlLabel value="true" control={<Radio />} label="Yes" />
+                              <FormControlLabel value="false" control={<Radio />} label="No" />
                             </RadioGroup>
                           </FormControl>
                         </Grid>
                         <Grid item xs={1}>
                           {question.options.length > 2 && (
-                            <IconButton
-                              onClick={() => removeOption(qIndex, oIndex)}
-                              color="error"
-                            >
+                            <IconButton onClick={() => removeOption(qIndex, oIndex)} color="error">
                               <DeleteIcon />
                             </IconButton>
                           )}
@@ -241,15 +233,11 @@ const AddQuiz = () => {
                       </Grid>
                     </Box>
                   ))}
-                  <Button
-                    variant="outlined"
-                    startIcon={<AddIcon />}
-                    onClick={() => addOption(qIndex)}
-                    sx={{ mt: 1 }}
-                  >
+                  <Button variant="outlined" startIcon={<AddIcon />} onClick={() => addOption(qIndex)} sx={{ mt: 1 }}>
                     Add Option
                   </Button>
                 </Grid>
+
                 <Grid item xs={12}>
                   <Divider sx={{ my: 2 }} />
                   <Button
@@ -267,20 +255,10 @@ const AddQuiz = () => {
           ))}
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={addQuestion}
-            >
+            <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={addQuestion}>
               Add Question
             </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              color="success"
-              size="large"
-            >
+            <Button type="submit" variant="contained" color="success" size="large">
               Save Quiz
             </Button>
           </Box>
