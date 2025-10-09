@@ -1,101 +1,26 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Container, Paper, Typography, TextField, Button, Grid, Alert, CircularProgress } from "@mui/material";
-import { useAuth } from "../context/AuthContext";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError(null);
+  setLoading(true);
 
-const Login = () => {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  if (!formData.email || !formData.password) {
+    setError("Please enter both email and password.");
+    setLoading(false);
+    return;
+  }
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  try {
+    const user = await login(formData);
+    toast.success("Login successful!");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    // Basic client-side validation
-    if (!formData.email || !formData.password) {
-      setError("Please enter both email and password.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      console.log("Attempting login with:", formData); // Debug log
-      await login(formData);
-      console.log("Login successful, navigating to /home"); // Debug log
-      toast.success("Login successful!");
-      navigate("/home");
-    } catch (err) {
-      console.error("Login error:", err); // Debug log
-      const errorMessage = err.message || "Login failed. Please try again.";
-      setError(errorMessage);
-      toast.error(errorMessage); // Also show as toast for visibility
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const isFormValid = formData.email && formData.password;
-
-  return (
-    <Container component="main" maxWidth="xs" sx={{ mt: 8, mb: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>Sign In</Typography>
-
-        {error && <Alert severity="error" sx={{ width: "100%", mb: 2 }}>{error}</Alert>}
-
-        <form onSubmit={handleSubmit} style={{ width: "100%" }}>
-          <TextField
-            label="Email Address"
-            name="email"
-            type="email" // Added type="email" for better validation
-            fullWidth
-            required
-            margin="normal"
-            value={formData.email}
-            onChange={handleChange}
-            autoFocus
-            disabled={loading}
-          />
-          <TextField
-            label="Password"
-            name="password"
-            type="password"
-            fullWidth
-            required
-            margin="normal"
-            value={formData.password}
-            onChange={handleChange}
-            disabled={loading}
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            color="primary"
-            sx={{ mt: 3, mb: 2 }}
-            disabled={!isFormValid || loading}
-          >
-            {loading ? <CircularProgress size={24} /> : "Sign In"}
-          </Button>
-          <Grid sx={{ display: "flex", justifyContent: "center" }}>
-            <Button onClick={() => navigate("/register")} sx={{ textTransform: "none" }} disabled={loading}>
-              Don't have an account? Sign up
-            </Button>
-          </Grid>
-        </form>
-      </Paper>
-      <ToastContainer position="top-right" autoClose={3000} />
-    </Container>
-  );
+    // Small delay ensures toast and context sync
+    setTimeout(() => navigate("/home"), 800);
+  } catch (err) {
+    console.error("Login error:", err);
+    const errorMessage = err.response?.data?.message || err.message || "Login failed. Please try again.";
+    setError(errorMessage);
+    toast.error(errorMessage);
+  } finally {
+    setLoading(false);
+  }
 };
-
-export default Login;
