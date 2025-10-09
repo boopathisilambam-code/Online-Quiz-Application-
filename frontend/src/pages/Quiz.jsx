@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 
 // User quiz API base
-const API_BASE = `${process.env.CLIENT_URL }`;
+const API_BASE = `${process.env.REACT_APP_BACKEND_URL }`;
 
 const Quiz = () => {
   const { id } = useParams();
