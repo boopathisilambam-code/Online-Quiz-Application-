@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: `${process.env.REACT_APP_BACEND_URI}`,
+        target: `${process.env.REACT_APP_BACKEND_URL}`,
         changeOrigin: true,
         secure: false
       }
