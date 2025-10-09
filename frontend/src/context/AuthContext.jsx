@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token") || "");
 
-  const API_BASE =`${process.env.CLIENT_URL }`; // <-- your backend URL
+  const API_BASE =`${process.env.REACT_APP_BACKEND_URL }`; // <-- your backend URL
 
   const register = async (formData) => {
     const res = await axios.post(`${API_BASE}/api/auth/register`, formData);
