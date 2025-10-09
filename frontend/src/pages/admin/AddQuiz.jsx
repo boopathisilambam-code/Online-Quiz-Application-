@@ -23,7 +23,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useAuth } from '../../context/AuthContext';
 
 // Full backend URL
-const API_BASE = "http://localhost:5000/api/admin";
+const API_BASE = `${process.env.CLIENT_URL }`;
 
 const AddQuiz = () => {
   const { token } = useAuth();
