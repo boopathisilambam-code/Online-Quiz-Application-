@@ -18,7 +18,7 @@ const Home = () => {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_BASE = `${process.env.CLIENT_URL }`; // <-- backend URL
+  const API_BASE = `${process.env.REACT_APP_BACKEND_URL }`; // <-- backend URL
 
   useEffect(() => {
     if (!token) {
