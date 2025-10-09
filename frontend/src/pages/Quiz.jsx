@@ -16,6 +16,9 @@ import {
   AlertTitle,
 } from '@mui/material';
 
+// User quiz API base
+const API_BASE = "http://localhost:5000/api/quiz";
+
 const Quiz = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -29,7 +32,7 @@ const Quiz = () => {
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
-        const res = await axios.get(`/api/quiz/${id}`);
+        const res = await axios.get(`${API_BASE}/${id}`);
         setQuiz(res.data);
         setLoading(false);
       } catch (err) {
@@ -37,7 +40,6 @@ const Quiz = () => {
         setLoading(false);
       }
     };
-
     fetchQuiz();
   }, [id]);
 
@@ -55,7 +57,7 @@ const Quiz = () => {
         selectedOptionId,
       }));
 
-      const res = await axios.post(`/api/quiz/submit/${id}`, {
+      const res = await axios.post(`${API_BASE}/submit/${id}`, {
         answers: formattedAnswers,
       });
 
