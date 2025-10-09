@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 
 // User quiz API base
-const API_BASE = "http://localhost:5000/api/quiz";
+const API_BASE = `${process.env.CLIENT_URL }`;
 
 const Quiz = () => {
   const { id } = useParams();
