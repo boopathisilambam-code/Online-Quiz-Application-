@@ -4,51 +4,68 @@ import axios from "axios";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("user")) || null
-  );
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [user, setUser ] = useState(null); // store user info
+  const [token, setToken] = useState(localStorage.getItem("token") || null);
 
-  const API_BASE = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common["x-auth-token"] = token;
+      // Fetch user info from correct endpoint
+      const fetchUser  = async () => {
+        try {
+          const res = await axios.get("/api/user/profile"); // Fixed: Matches backend route
+          setUser (res.data);
+        } catch (err) {
+          console.error("Error fetching user profile:", err);
+          logout(); // Clear invalid session
+        }
+      };
+      fetchUser ();
+    } else {
+      // No token? Clear headers
+      delete axios.defaults.headers.common["x-auth-token"];
+    }
+  }, [token]);
 
-  const register = async (formData) => {
-    const res = await axios.post(`${API_BASE}/api/auth/register`, formData);
-    return res.data;
+  const login = async ({ email, password }) => {
+    try {
+      const res = await axios.post("/api/auth/login", { email, password });
+      const { token, user } = res.data;
+      setToken(token);
+      setUser (user);
+      localStorage.setItem("token", token);
+      axios.defaults.headers.common["x-auth-token"] = token;
+      return true;
+    } catch (err) {
+      console.error("Login error:", err.response?.data || err.message); // For debugging
+      throw new Error(err.response?.data?.msg || "Login failed"); // Use 'msg' to match backend
+    }
   };
 
-  const login = async (formData) => {
-    const res = await axios.post(`${API_BASE}/api/auth/login`, formData);
-    const { token, user } = res.data;
-
-    if (!token || !user) throw new Error("Invalid login response from server");
-
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-
-    setToken(token);
-    setUser(user);
-    return user;
+  const register = async ({ name, email, password, role }) => {
+    try {
+      const res = await axios.post("/api/auth/register", { name, email, password, role });
+      const { token, user } = res.data;
+      setToken(token);
+      setUser (user);
+      localStorage.setItem("token", token);
+      axios.defaults.headers.common["x-auth-token"] = token;
+      return true;
+    } catch (err) {
+      console.error("Register error:", err.response?.data || err.message); // For debugging
+      throw new Error(err.response?.data?.msg || "Registration failed"); // Use 'msg' to match backend
+    }
   };
 
   const logout = () => {
+    setToken(null);
+    setUser (null);
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setToken("");
-    setUser(null);
+    delete axios.defaults.headers.common["x-auth-token"];
   };
 
-  // Load persisted user if token is valid
-  useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    const savedToken = localStorage.getItem("token");
-    if (savedUser && savedToken) {
-      setUser(JSON.parse(savedUser));
-      setToken(savedToken);
-    }
-  }, []);
-
   return (
-    <AuthContext.Provider value={{ user, token, register, login, logout }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
