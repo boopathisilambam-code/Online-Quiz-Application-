@@ -10,6 +10,7 @@ import {
   CardContent,
   Button,
   CircularProgress,
+  Alert,
 } from "@mui/material";
 
 const Home = () => {
@@ -17,30 +18,35 @@ const Home = () => {
   const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const API_BASE = `${process.env.REACT_APP_BACKEND_URL }`; // <-- backend URL
-
+  // Redirect to login if no token
   useEffect(() => {
     if (!token) {
       navigate("/login");
     }
   }, [token, navigate]);
 
+  // Fetch quizzes (public endpoint, but we check token for consistency)
   useEffect(() => {
     const fetchQuizzes = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/quiz`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        setError(null); // Clear previous errors
+        const res = await axios.get("/api/quiz"); // Relative path - no headers needed (uses AuthContext default if token exists)
         setQuizzes(res.data);
       } catch (err) {
         console.error("Error fetching quizzes:", err);
+        setError("Failed to load quizzes. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (token) fetchQuizzes();
+    if (token) {
+      fetchQuizzes();
+    } else {
+      setLoading(false); // No token? Stop loading (will redirect anyway)
+    }
   }, [token]);
 
   if (loading) {
@@ -57,8 +63,14 @@ const Home = () => {
   return (
     <Container sx={{ mt: 8, mb: 6 }}>
       <Typography variant="h4" gutterBottom align="center">
-        Welcome {user?.name || "User"} 👋
+        Welcome {user?.name || "User "} 👋
       </Typography>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, textAlign: "center" }}>
+          {error}
+        </Alert>
+      )}
 
       {quizzes.length === 0 ? (
         <Typography variant="h6" align="center" color="text.secondary">
