@@ -6,6 +6,37 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
+  // ✅ Register function
+  const register = async ({ name, email, password, role }) => {
+    try {
+      const res = await fetch(
+        "https://online-quiz-application-e19c.onrender.com/api/auth/register",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password, role }),
+        }
+      );
+
+      const text = await res.text();
+      let data = {};
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error("Invalid server response");
+        }
+      }
+
+      if (!res.ok) throw new Error(data.message || "Registration failed");
+
+      return data;
+    } catch (err) {
+      console.error("Register error:", err.message);
+      throw err;
+    }
+  };
+
   // ✅ Login function
   const login = async ({ email, password }) => {
     try {
@@ -90,7 +121,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, getProfile }}>
+    <AuthContext.Provider value={{ user, register, login, logout, getProfile }}>
       {children}
     </AuthContext.Provider>
   );
