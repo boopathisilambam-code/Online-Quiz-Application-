@@ -1,37 +1,31 @@
 // backend/routes/auth.js
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-// ✅ Login route
-router.post("/login", async (req, res) => {
+// POST /api/auth/register
+router.post("/register", async (req, res) => {
+  const { name, email, password, role } = req.body;
+
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    let user = await User.findOne({ email });
+    if (user) return res.status(400).json({ message: "User already exists" });
 
-    if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
+    user = new User({ name, email, password, role });
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
+    await user.save();
 
     const payload = { user: { id: user.id } };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    // ✅ Always send a valid JSON
-    res.status(200).json({
-      message: "Login successful",
-      token,
-      user: { id: user.id, name: user.name, email: user.email },
-    });
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
-    console.error("Login error:", err.message);
-    res.status(500).json({ message: "Server error" });
+    console.error(err.message);
+    res.status(500).json({ message: "Server Error" });
   }
 });
 
