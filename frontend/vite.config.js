@@ -6,11 +6,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: `${process.env.REACT_APP_BACKEND_URL}`,
+        target: process.env.VITE_BACKEND_URL,
         changeOrigin: true,
-        secure: false
-      }
+        secure: false,
+      },
     },
-    historyApiFallback: true, // 👈 Add this line
+    historyApiFallback: true,
   },
 });
