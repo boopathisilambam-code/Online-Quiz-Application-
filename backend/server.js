@@ -1,4 +1,3 @@
-// backend/server.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -16,14 +15,16 @@ app.use(express.json());
 app.use(helmet());
 app.use(morgan('dev'));
 
-// ✅ CORS Configuration (update frontend URL)
-app.use(cors({
-  origin: [
-    'https://online-quiz-application-7.onrender.com', // 🔁 replace with your actual frontend Render URL
-    'http://localhost:5173' // for local development
-  ],
-  credentials: true
-}));
+// ✅ CORS Configuration
+app.use(
+  cors({
+    origin: [
+      process.env.FRONTEND_URL, // Render frontend
+      'http://localhost:5173'   // Local dev
+    ],
+    credentials: true,
+  })
+);
 
 // ✅ Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -31,12 +32,12 @@ app.use('/api/quiz', require('./routes/quiz'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/user', require('./routes/user'));
 
-// ✅ Root route (optional sanity check)
+// ✅ Root sanity check
 app.get('/', (req, res) => {
   res.send('✅ Online Quiz Application API is running...');
 });
 
-// ✅ Error Handling Middleware
+// ✅ Error Handler
 app.use((err, req, res, next) => {
   console.error('❌ Server Error:', err);
   res.status(500).json({ message: err.message || 'Something went wrong!' });
