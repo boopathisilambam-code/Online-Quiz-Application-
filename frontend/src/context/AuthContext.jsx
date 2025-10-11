@@ -6,7 +6,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // ✅ Register function
+  // Register function
   const register = async ({ name, email, password, role }) => {
     try {
       const res = await fetch(
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Login function
+  // Login function ✅ only email and password
   const login = async ({ email, password }) => {
     try {
       const res = await fetch(
@@ -45,8 +45,9 @@ export const AuthProvider = ({ children }) => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ name, email, password, role }),
-});
+          body: JSON.stringify({ email, password }), // <- fixed
+        }
+      );
 
       const text = await res.text();
       let data = {};
@@ -69,7 +70,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Get user profile
+  // Get user profile
   const getProfile = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -106,13 +107,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Logout
+  // Logout
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
   };
 
-  // ✅ Auto-load profile on app start
+  // Auto-load profile on app start
   useEffect(() => {
     if (localStorage.getItem("token")) {
       getProfile().catch(err => console.error(err.message));
