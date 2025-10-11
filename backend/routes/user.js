@@ -1,13 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middlewares/auth');
-const userController = require('../controllers/user');
+const auth = require('../middleware/auth');
+const User = require('../models/User'); // Make sure this path is correct
 
-// @route   GET api/user/profile
-// @desc    Get user profile
-// @access  Private
-// router.get('/profile', auth, userController.getProfile);
-router.get('/profile', auth, userController.getProfile);
-
+// ✅ GET user profile (protected)
+router.get('/profile', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    console.error('Error fetching user profile:', err.message);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
 
 module.exports = router;
