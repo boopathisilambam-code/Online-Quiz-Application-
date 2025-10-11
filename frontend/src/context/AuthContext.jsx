@@ -36,37 +36,23 @@ const register = async ({ name, email, password, role }) => {
 
 
   // Login function ✅ only email and password
-  const login = async ({ email, password }) => {
-    try {
-      const res = await fetch(
-        "https://online-quiz-application-e19c.onrender.com/api/auth/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }), // <- fixed
-        }
-      );
-
-      const text = await res.text();
-      let data = {};
-      if (text) {
-        try {
-          data = JSON.parse(text);
-        } catch {
-          throw new Error("Invalid server response");
-        }
-      }
-
-      if (!res.ok) throw new Error(data.message || "Login failed");
-
-      localStorage.setItem("token", data.token);
-      setUser(data.user);
-      return data.user;
-    } catch (err) {
-      console.error("Login error:", err.message);
-      throw err;
+ const login = async ({ email, password }) => {
+  const res = await fetch(
+    "https://online-quiz-application-e19c.onrender.com/api/auth/login",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }) // ✅ only email & password
     }
-  };
+  );
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Login failed");
+
+  localStorage.setItem("token", data.token);
+  setUser(data.user);
+  return data.user;
+};
 
   // Get user profile
   const getProfile = async () => {
