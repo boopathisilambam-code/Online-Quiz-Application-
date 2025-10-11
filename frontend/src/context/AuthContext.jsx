@@ -13,8 +13,16 @@ export const AuthProvider = ({ children }) => {
       body: JSON.stringify({ email, password }),
     });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.msg || "Login failed");
+    // ✅ Check if response has content
+    let data;
+    const text = await res.text();
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (err) {
+      throw new Error("Invalid server response");
+    }
+
+    if (!res.ok) throw new Error(data.message || "Login failed");
 
     localStorage.setItem("token", data.token);
     setUser(data.user);
@@ -28,8 +36,15 @@ export const AuthProvider = ({ children }) => {
       headers: { "x-auth-token": token },
     });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.msg || "Failed to load profile");
+    let data;
+    const text = await res.text();
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (err) {
+      throw new Error("Invalid server response");
+    }
+
+    if (!res.ok) throw new Error(data.message || "Failed to load profile");
     setUser(data);
   };
 
