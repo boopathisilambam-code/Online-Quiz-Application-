@@ -7,35 +7,33 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   // Register function
-  const register = async ({ name, email, password, role }) => {
-    try {
-      const res = await fetch(
-        "https://online-quiz-application-e19c.onrender.com/api/auth/register",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password, role }),
-        }
-      );
-
-      const text = await res.text();
-      let data = {};
-      if (text) {
-        try {
-          data = JSON.parse(text);
-        } catch {
-          throw new Error("Invalid server response");
-        }
+const register = async ({ name, email, password, role }) => {
+  try {
+    const res = await fetch(
+      "https://online-quiz-application-e19c.onrender.com/api/auth/register",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, role }),
       }
+    );
 
-      if (!res.ok) throw new Error(data.message || "Registration failed");
-
-      return data;
-    } catch (err) {
-      console.error("Register error:", err.message);
-      throw err;
+    let data;
+    try {
+      data = await res.json(); // ✅ parse JSON directly
+    } catch {
+      data = {}; // if server sends empty response
     }
-  };
+
+    if (!res.ok) throw new Error(data.message || "Registration failed");
+
+    return data;
+  } catch (err) {
+    console.error("Register error:", err.message);
+    throw err;
+  }
+};
+
 
   // Login function ✅ only email and password
   const login = async ({ email, password }) => {
