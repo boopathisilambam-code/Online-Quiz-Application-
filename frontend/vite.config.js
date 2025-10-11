@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.VITE_BACKEND_URL,
+        target: 'https://online-quiz-application-e19c.onrender.com',
         changeOrigin: true,
         secure: false,
       },
