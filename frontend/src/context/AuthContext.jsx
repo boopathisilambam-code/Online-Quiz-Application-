@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -6,52 +6,88 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
+  // ✅ Login function
   const login = async ({ email, password }) => {
-    const res = await fetch(`/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    // ✅ Check if response has content
-    let data;
-    const text = await res.text();
     try {
-      data = text ? JSON.parse(text) : {};
+      const res = await fetch(
+        "https://online-quiz-application-e19c.onrender.com/api/auth/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
+
+      const text = await res.text();
+      let data = {};
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error("Invalid server response");
+        }
+      }
+
+      if (!res.ok) throw new Error(data.message || "Login failed");
+
+      localStorage.setItem("token", data.token);
+      setUser(data.user);
+      return data.user;
     } catch (err) {
-      throw new Error("Invalid server response");
+      console.error("Login error:", err.message);
+      throw err;
     }
-
-    if (!res.ok) throw new Error(data.message || "Login failed");
-
-    localStorage.setItem("token", data.token);
-    setUser(data.user);
   };
 
+  // ✅ Get user profile
   const getProfile = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) throw new Error("No token");
-
-    const res = await fetch(`/api/user/profile`, {
-      headers: { "x-auth-token": token },
-    });
-
-    let data;
-    const text = await res.text();
     try {
-      data = text ? JSON.parse(text) : {};
-    } catch (err) {
-      throw new Error("Invalid server response");
-    }
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No token found");
 
-    if (!res.ok) throw new Error(data.message || "Failed to load profile");
-    setUser(data);
+      const res = await fetch(
+        "https://online-quiz-application-e19c.onrender.com/api/user/profile",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "x-auth-token": token,
+          },
+        }
+      );
+
+      const text = await res.text();
+      let data = {};
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error("Invalid server response");
+        }
+      }
+
+      if (!res.ok) throw new Error(data.message || "Failed to load profile");
+
+      setUser(data);
+      return data;
+    } catch (err) {
+      console.error("Get profile error:", err.message);
+      throw err;
+    }
   };
 
+  // ✅ Logout
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
   };
+
+  // ✅ Auto-load profile on app start
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      getProfile().catch(err => console.error(err.message));
+    }
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, login, logout, getProfile }}>
