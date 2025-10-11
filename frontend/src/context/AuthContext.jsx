@@ -1,74 +1,46 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import React, { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser ] = useState(null); // store user info
-  const [token, setToken] = useState(localStorage.getItem("token") || null);
-
-  useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common["x-auth-token"] = token;
-      // Fetch user info from correct endpoint
-      const fetchUser  = async () => {
-        try {
-          const res = await axios.get("/api/user/profile"); // Fixed: Matches backend route
-          setUser (res.data);
-        } catch (err) {
-          console.error("Error fetching user profile:", err);
-          logout(); // Clear invalid session
-        }
-      };
-      fetchUser ();
-    } else {
-      // No token? Clear headers
-      delete axios.defaults.headers.common["x-auth-token"];
-    }
-  }, [token]);
+  const [user, setUser] = useState(null);
 
   const login = async ({ email, password }) => {
-    try {
-      const res = await axios.post("/api/auth/login", { email, password });
-      const { token, user } = res.data;
-      setToken(token);
-      setUser (user);
-      localStorage.setItem("token", token);
-      axios.defaults.headers.common["x-auth-token"] = token;
-      return true;
-    } catch (err) {
-      console.error("Login error:", err.response?.data || err.message); // For debugging
-      throw new Error(err.response?.data?.msg || "Login failed"); // Use 'msg' to match backend
-    }
+    const res = await fetch(`/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.msg || "Login failed");
+
+    localStorage.setItem("token", data.token);
+    setUser(data.user);
   };
 
-  const register = async ({ name, email, password, role }) => {
-    try {
-      const res = await axios.post("/api/auth/register", { name, email, password, role });
-      const { token, user } = res.data;
-      setToken(token);
-      setUser (user);
-      localStorage.setItem("token", token);
-      axios.defaults.headers.common["x-auth-token"] = token;
-      return true;
-    } catch (err) {
-      console.error("Register error:", err.response?.data || err.message); // For debugging
-      throw new Error(err.response?.data?.msg || "Registration failed"); // Use 'msg' to match backend
-    }
+  const getProfile = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No token");
+
+    const res = await fetch(`/api/user/profile`, {
+      headers: { "x-auth-token": token },
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.msg || "Failed to load profile");
+    setUser(data);
   };
 
   const logout = () => {
-    setToken(null);
-    setUser (null);
     localStorage.removeItem("token");
-    delete axios.defaults.headers.common["x-auth-token"];
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, getProfile }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => useContext(AuthContext);
