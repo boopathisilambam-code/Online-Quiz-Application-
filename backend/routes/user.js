@@ -7,7 +7,7 @@ const userController = require('../controllers/user');
 // @desc    Get user profile
 // @access  Private
 // router.get('/profile', auth, userController.getProfile);
-router.get('/', auth, userController.getProfile);
+router.get('/profile', auth, userController.getProfile);
 
 
 module.exports = router;
